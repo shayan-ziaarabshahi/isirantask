@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axiosDefaultInstance from 'axiosApi/defaultInstance';
-import { Controller, useForm } from "react-hook-form";
+import { Controller, FormProvider, useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { toast } from "react-toastify";
@@ -12,6 +12,8 @@ import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import SaveIcon from '@mui/icons-material/Save';
 import Modal from "./Modal";
+import TextInputForm from "controls/text/index"
+
 
 
 export default function Add() {
@@ -29,13 +31,7 @@ export default function Add() {
         birthday: yup.string().required("این کادر الزامی است."),
     });
 
-    const {
-        handleSubmit,
-        register,
-        control,
-        formState: { errors },
-        setValue,
-    } = useForm({
+    const methods = useForm({
         resolver: yupResolver(formValidationSchema),
     });
 
@@ -64,86 +60,61 @@ export default function Add() {
                 <AddIcon />
             </IconButton>
             <Modal showModal={showAddUserModal}>
-                <form onSubmit={handleSubmit(handleAddUser)} noValidate>
-                    <Box className="p-4">
-                        <Typography
-                            className="cursor-pointer"
-                            onClick={() => setShowAddUserModal(false)}
-                        >
-                            <CloseIcon />
-                        </Typography>
-                    </Box>
-                    <Box className="p-4">
-                        <Box className="flex justify-center flex-wrap gap-4">
-                            <Box className="mb-4">
-                                <Controller
-                                    name="username"
-                                    label="نام کاربری"
-                                    control={control}
-                                    render={({ field }) => <TextField
+                <FormProvider {...methods}>
+                    <form onSubmit={methods.handleSubmit(handleAddUser)} noValidate>
+                        <Box className="p-4">
+                            <Typography
+                                className="cursor-pointer"
+                                onClick={() => setShowAddUserModal(false)}
+                            >
+                                <CloseIcon />
+                            </Typography>
+                        </Box>
+                        <Box className="p-4">
+                            <Box className="flex justify-center flex-wrap gap-4">
+                                <Box className="mb-4">
+                                    <TextInputForm
+                                        name="username"
                                         label="نام کاربری"
-                                        type="text"
-                                        error={!!errors.username}
-                                        helperText={errors.username?.message}
-                                        {...field}
-                                    />}
-                                />
-
-
-
-                            </Box>
-                            <Box className="mb-4">
-                                <Controller
-                                    name="firstName"
-                                    label="نام"
-                                    control={control}
-                                    render={({ field }) => <TextField
+                                    />
+                                </Box>
+                                <Box className="mb-4">
+                                    <TextInputForm
+                                        name="firstName"
                                         label="نام"
-                                        type="text"
-                                        error={!!errors.firstName}
-                                        helperText={errors.firstName?.message}
-                                        {...field}
-                                    />}
-                                />
-                            </Box>
-                            <Box className="mb-4">
-                                <Controller
-                                    name="lastName"
-                                    label="نام خانوادگی"
-                                    control={control}
-                                    render={({ field }) => <TextField
+                                    />
+                                </Box>
+                                <Box className="mb-4">
+                                    <TextInputForm
+                                        name="lastName"
                                         label="نام خانوادگی"
-                                        type="text"
-                                        error={!!errors.lastName}
-                                        helperText={errors.lastName?.message}
-                                        {...field}
-                                    />}
-                                />
-                            </Box>
-                            <Box className="mb-4">
-                                <MaterialDatePicker
-                                    label="تاریخ تولد"
-                                    register={{ ...register("birthday") }}
-                                    error={!!errors.birthday}
-                                    helperText={errors.birthday?.message}
-                                    setValue={(date) => setValue("birthday", date)}
-                                    currentDate={currentDate}
-                                    setCurrentDate={setCurrentDate}
-                                />
+                                    />
+                                </Box>
+                                <Box className="mb-4">
+                                    {/* <MaterialDatePicker
+                                        label="تاریخ تولد"
+                                        register={{ ...methods.register("birthday") }}
+                                        error={!!methods.errors.birthday}
+                                        helperText={methods.errors.birthday?.message}
+                                        setValue={(date) => methods.setValue("birthday", date)}
+                                        currentDate={currentDate}
+                                        setCurrentDate={setCurrentDate}
+                                    /> */}
+                                </Box>
                             </Box>
                         </Box>
-                    </Box>
-                    <Box className="p-4 mt-auto flex justify-center">
-                        <IconButton
-                            variant="contained"
-                            color="success"
-                            type="submit"
-                            className=""
-                        >
-                            <SaveIcon />
-                        </IconButton>
-                    </Box>
-                </form>
+                        <Box className="p-4 mt-auto flex justify-center">
+                            <IconButton
+                                variant="contained"
+                                color="success"
+                                type="submit"
+                                className=""
+                            >
+                                <SaveIcon />
+                            </IconButton>
+                        </Box>
+                    </form>
+                </FormProvider>
             </Modal>
         </>
     )

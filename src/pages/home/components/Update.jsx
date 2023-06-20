@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axiosDefaultInstance from 'axiosApi/defaultInstance';
-import { Controller, useForm } from "react-hook-form";
+import { Controller, FormProvider, useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { toast } from "react-toastify";
@@ -12,7 +12,7 @@ import Modal from "./Modal";
 /* icons */
 import EditIcon from '@mui/icons-material/Edit';
 import CloseIcon from '@mui/icons-material/Close';
-
+import TextInputForm from "controls/text/index"
 
 
 export default function Update({ user }) {
@@ -30,23 +30,17 @@ export default function Update({ user }) {
         userId: yup.string().required("این کادر الزامی است."),
     });
 
-    const {
-        handleSubmit,
-        register,
-        control,
-        formState: { errors },
-        setValue,
-    } = useForm({
+    const methods = useForm({
         resolver: yupResolver(formValidationSchema),
     });
 
     const handleUpdateUserButtonClick = (user) => {
         setShowUpdateUserModal(true);
-        setValue("userId", user._id);
-        setValue("username", user.username);
-        setValue("firstName", user.firstName);
-        setValue("lastName", user.lastName);
-        setValue("birthday", user.birthday);
+        methods.setValue("userId", user._id);
+        methods.setValue("username", user.username);
+        methods.setValue("firstName", user.firstName);
+        methods.setValue("lastName", user.lastName);
+        methods.setValue("birthday", user.birthday);
         setCurrentDate(user.birthday);
     };
 
@@ -83,82 +77,60 @@ export default function Update({ user }) {
             </IconButton>
 
             <Modal showModal={showUpdateUserModal}>
-                <form onSubmit={handleSubmit(handleUpdateUser)} noValidate>
-                    <Box className="p-4">
-                        <Typography
-                            className="cursor-pointer"
-                            onClick={() => setShowUpdateUserModal(false)}
-                        >
-                            <CloseIcon />
-                        </Typography>
-                    </Box>
-                    <Box className="p-4">
-                        <Box className="flex justify-center flex-wrap gap-4">
-                            <Box className="mb-4">
-                                <Controller
-                                    name="username"
-                                    label="نام کاربری"
-                                    control={control}
-                                    render={({ field }) => <TextField
+                <FormProvider {...methods}>
+                    <form onSubmit={methods.handleSubmit(handleUpdateUser)} noValidate>
+                        <Box className="p-4">
+                            <Typography
+                                className="cursor-pointer"
+                                onClick={() => setShowUpdateUserModal(false)}
+                            >
+                                <CloseIcon />
+                            </Typography>
+                        </Box>
+                        <Box className="p-4">
+                            <Box className="flex justify-center flex-wrap gap-4">
+                                <Box className="mb-4">
+                                    <TextInputForm
+                                        name="username"
                                         label="نام کاربری"
-                                        type="text"
-                                        error={!!errors.username}
-                                        helperText={errors.username?.message}
-                                        {...field}
-                                    />}
-                                />
-                            </Box>
-                            <Box className="mb-4">
-                                <Controller
-                                    name="firstName"
-                                    label="نام"
-                                    control={control}
-                                    render={({ field }) => <TextField
+                                    />
+                                </Box>
+                                <Box className="mb-4">
+                                    <TextInputForm
+                                        name="firstName"
                                         label="نام"
-                                        type="text"
-                                        error={!!errors.firstName}
-                                        helperText={errors.firstName?.message}
-                                        {...field}
-                                    />}
-                                />
-                            </Box>
-                            <Box className="mb-4">
-                                <Controller
-                                    name="lastName"
-                                    label="نام خانوادگی"
-                                    control={control}
-                                    render={({ field }) => <TextField
+                                    />
+                                </Box>
+                                <Box className="mb-4">
+                                    <TextInputForm
+                                        name="lastName"
                                         label="نام خانوادگی"
-                                        type="text"
-                                        error={!!errors.lastName}
-                                        helperText={errors.lastName?.message}
-                                        {...field}
-                                    />}
-                                />
-                            </Box>
-                            <Box className="mb-4">
-                                <MaterialDatePicker
-                                    label="تاریخ تولد"
-                                    register={{ ...register("birthday") }}
-                                    error={!!errors.birthday}
-                                    helperText={errors.birthday?.message}
-                                    setValue={(date) => setValue("birthday", date)}
-                                    currentDate={currentDate}
-                                    setCurrentDate={setCurrentDate}
-                                />
+                                    />
+                                </Box>
+                                <Box className="mb-4">
+                                    {/* <MaterialDatePicker
+                                        label="تاریخ تولد"
+                                        register={{ ...register("birthday") }}
+                                        error={!!errors.birthday}
+                                        helperText={errors.birthday?.message}
+                                        setValue={(date) => setValue("birthday", date)}
+                                        currentDate={currentDate}
+                                        setCurrentDate={setCurrentDate}
+                                    /> */}
+                                </Box>
                             </Box>
                         </Box>
-                    </Box>
-                    <Box className="p-4 mt-auto flex justify-center">
-                        <IconButton
-                            variant="contained"
-                            color="success"
-                            type="submit"
-                        >
-                            <EditIcon />
-                        </IconButton>
-                    </Box>
-                </form>
+                        <Box className="p-4 mt-auto flex justify-center">
+                            <IconButton
+                                variant="contained"
+                                color="success"
+                                type="submit"
+                            >
+                                <EditIcon />
+                            </IconButton>
+                        </Box>
+                    </form>
+                </FormProvider>
             </Modal>
         </>
     )
