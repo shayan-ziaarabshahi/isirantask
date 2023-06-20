@@ -11,6 +11,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 export default function AdapterJalali({
   label,
   currentDate,
+  setCurrentDate,
   error,
   helperText,
   register,
@@ -24,13 +25,17 @@ export default function AdapterJalali({
     [existingTheme],
   );
 
+  React.useEffect(() => {
+    setValue(currentDate || new Date())
+  }, [currentDate, setValue])
+
   return (
     <ThemeProvider theme={theme}>
       <div dir="rtl">
         <LocalizationProvider dateAdapter={AdapterDateFnsJalali}>
           <DatePicker
             label={label}
-            onChange={date => {setValue(date)}}
+            onChange={date => { setCurrentDate(date) }}
             value={new Date(currentDate ? currentDate : null)}
             error={error}
             helperText={helperText}
