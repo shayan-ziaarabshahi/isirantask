@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+*,
+*::after,
+*::before {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: vazir;
+}
+
+.Toastify__toast-body {
+  font-family: vazir;
+}
+
+@font-face {
+  font-family: vazir;
+  src: url("./assets/fonts/Vazir.woff2");
+}
