@@ -3,15 +3,10 @@ import { createSlice } from "@reduxjs/toolkit";
 
 
 const setUsers = (state, action) => {
-  console.log(action.payload)
    state.users = action.payload.users
 }
 
-
-const initialState = {
-   users: []
-}
-
+const initialState = [];
 
 const usersSlice = createSlice({
    name:'usersSlice',

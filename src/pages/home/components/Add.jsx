@@ -1,109 +1,85 @@
 import { useState } from "react";
-import axiosDefaultInstance from 'axiosApi/defaultInstance';
-import { Controller, FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { toast } from "react-toastify";
 import { useSelector, useDispatch } from "react-redux";
 import { setUsersAction } from "redux/slices/usersSlice";
-import { Box, IconButton, TextField, Typography } from "@mui/material";
-import MaterialDatePicker from "shared_components/MaterialDatePicker.jsx"
-import CloseIcon from '@mui/icons-material/Close';
+import { Box, IconButton } from "@mui/material";
 import AddIcon from '@mui/icons-material/Add';
 import SaveIcon from '@mui/icons-material/Save';
 import Modal from "./Modal";
 import TextInputForm from "controls/text/index"
-
+import DatePickerInputForm from "controls/datePicker";
+import FormBodyContainer from "./FormBodyContainer";
+import FormFooterContainer from "./FormFooterContainer";
+import FormHeader from "./FormHeader";
+import { formTextFieldsData } from "data/pages/home/index"
+import useRequest from "hooks/useRequest";
+import tableSchema from "formSchema/table";
+import useToggle from "hooks/useToggle";
 
 
 export default function Add() {
     const usersSelector = useSelector(state => state.usersSlice)
     const dispatch = useDispatch()
 
-    /* add user */
-    const [showAddUserModal, setShowAddUserModal] = useState(false);
+    const { status: showAddUserModal, toggleStatus: setShowAddUserModal } = useToggle()
     const [currentDate, setCurrentDate] = useState()
 
     const formValidationSchema = yup.object().shape({
-        username: yup.string().required("این کادر الزامی است."),
-        firstName: yup.string().required("این کادر الزامی است."),
-        lastName: yup.string().required("این کادر الزامی است."),
-        birthday: yup.string().required("این کادر الزامی است."),
+        ...tableSchema
     });
 
     const methods = useForm({
         resolver: yupResolver(formValidationSchema),
     });
 
-    const handleAddUser = async (data) => {
-        try {
-            const res = await axiosDefaultInstance({
-                method: "POST",
-                url: `/user`,
-                data,
-            });
+    const [request] = useRequest()
+    const handleAddUser = (sendPayload) => {
+        const onSuccess = (receivedData) => {
             toast("با موفقیت ثبت شد.");
-            dispatch(setUsersAction({ users: [...usersSelector.users, res.data.newUser] }))
-        } catch (err) {
-            console.log(err);
+            dispatch(setUsersAction({ users: [...usersSelector.users, receivedData.newUser] }))
         }
-        setShowAddUserModal(false);
-    };
+
+        request("POST", '/user', sendPayload, onSuccess)
+        setShowAddUserModal();
+    }
 
     return (
         <>
             <IconButton
                 variant="contained"
                 className=""
-                onClick={() => setShowAddUserModal(true)}
+                onClick={() => setShowAddUserModal()}
             >
                 <AddIcon />
             </IconButton>
             <Modal showModal={showAddUserModal}>
                 <FormProvider {...methods}>
                     <form onSubmit={methods.handleSubmit(handleAddUser)} noValidate>
-                        <Box className="p-4">
-                            <Typography
-                                className="cursor-pointer"
-                                onClick={() => setShowAddUserModal(false)}
-                            >
-                                <CloseIcon />
-                            </Typography>
-                        </Box>
-                        <Box className="p-4">
-                            <Box className="flex justify-center flex-wrap gap-4">
-                                <Box className="mb-4">
-                                    <TextInputForm
-                                        name="username"
-                                        label="نام کاربری"
-                                    />
-                                </Box>
-                                <Box className="mb-4">
-                                    <TextInputForm
-                                        name="firstName"
-                                        label="نام"
-                                    />
-                                </Box>
-                                <Box className="mb-4">
-                                    <TextInputForm
-                                        name="lastName"
-                                        label="نام خانوادگی"
-                                    />
-                                </Box>
-                                <Box className="mb-4">
-                                    {/* <MaterialDatePicker
-                                        label="تاریخ تولد"
-                                        register={{ ...methods.register("birthday") }}
-                                        error={!!methods.errors.birthday}
-                                        helperText={methods.errors.birthday?.message}
-                                        setValue={(date) => methods.setValue("birthday", date)}
-                                        currentDate={currentDate}
-                                        setCurrentDate={setCurrentDate}
-                                    /> */}
-                                </Box>
+                        <FormHeader setShow={setShowAddUserModal} />
+                        <FormBodyContainer>
+                            {
+                                formTextFieldsData.map(i => (
+                                    <Box key={i.name} className="mb-4">
+                                        <TextInputForm
+                                            name={i.name}
+                                            label={i.label}
+                                        />
+                                    </Box>
+                                ))
+                            }
+                            <Box className="mb-4">
+                                <DatePickerInputForm
+                                    label="تاریخ تولد"
+                                    name="birthday"
+                                    currentDate={currentDate}
+                                    setCurrentDate={setCurrentDate}
+                                />
                             </Box>
-                        </Box>
-                        <Box className="p-4 mt-auto flex justify-center">
+                        </FormBodyContainer>
+                        <FormFooterContainer>
                             <IconButton
                                 variant="contained"
                                 color="success"
@@ -112,7 +88,7 @@ export default function Add() {
                             >
                                 <SaveIcon />
                             </IconButton>
-                        </Box>
+                        </FormFooterContainer>
                     </form>
                 </FormProvider>
             </Modal>

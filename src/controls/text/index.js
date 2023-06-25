@@ -16,7 +16,7 @@ function FormInput(props) {
             render={({ field }) => <TextField
                 label={label}
                 type="text"
-                error={errors[name] ? true : false}
+                error={!!errors[name]}
                 helperText={errors[name] ? errors[name]?.message : ""}
                 {...field}
             />}

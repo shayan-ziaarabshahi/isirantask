@@ -1,32 +1,33 @@
 import { useState } from "react";
-import axiosDefaultInstance from 'axiosApi/defaultInstance';
-import { Controller, FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { toast } from "react-toastify";
 import { useSelector, useDispatch } from "react-redux";
 import { setUsersAction } from "redux/slices/usersSlice";
-import { Box, IconButton, TextField, Typography } from "@mui/material";
-import MaterialDatePicker from "shared_components/MaterialDatePicker.jsx"
+import { Box, IconButton } from "@mui/material";
 import Modal from "./Modal";
-/* icons */
 import EditIcon from '@mui/icons-material/Edit';
-import CloseIcon from '@mui/icons-material/Close';
 import TextInputForm from "controls/text/index"
+import DatePickerInputForm from "controls/datePicker";
+import FormBodyContainer from "./FormBodyContainer";
+import FormHeader from "./FormHeader";
+import { formTextFieldsData } from "data/pages/home/index"
+import useRequest from "hooks/useRequest";
+import FormFooterContainer from "./FormFooterContainer";
+import tableSchema from "formSchema/table";
+import useToggle from "hooks/useToggle";
 
 
 export default function Update({ user }) {
     const usersSelector = useSelector(state => state.usersSlice)
     const dispatch = useDispatch()
 
-    const [showUpdateUserModal, setShowUpdateUserModal] = useState(false);
+    const { status: showUpdateUserModal, toggleStatus: setShowUpdateUserModal } = useToggle()
     const [currentDate, setCurrentDate] = useState();
 
     const formValidationSchema = yup.object().shape({
-        username: yup.string().required("این کادر الزامی است."),
-        firstName: yup.string().required("این کادر الزامی است."),
-        lastName: yup.string().required("این کادر الزامی است."),
-        birthday: yup.string().required("این کادر الزامی است."),
+        ...tableSchema,
         userId: yup.string().required("این کادر الزامی است."),
     });
 
@@ -35,36 +36,31 @@ export default function Update({ user }) {
     });
 
     const handleUpdateUserButtonClick = (user) => {
-        setShowUpdateUserModal(true);
+        setShowUpdateUserModal();
         methods.setValue("userId", user._id);
         methods.setValue("username", user.username);
         methods.setValue("firstName", user.firstName);
         methods.setValue("lastName", user.lastName);
-        methods.setValue("birthday", user.birthday);
-        setCurrentDate(user.birthday);
+        setCurrentDate(new Date(user.birthday));
     };
 
-    const handleUpdateUser = async (data) => {
-        try {
-            const res = await axiosDefaultInstance({
-                method: "PUT",
-                url: `/user`,
-                data,
-            });
-            toast("با موفقیت اصلاح شد.");
-            let updatedList = usersSelector.users.map((user) => {
-                if (user._id === data.userId) {
-                    return res.data;
+    const [request] = useRequest()
+    const handleUpdateUser = (sendPayload) => {
+        const onSuccess = (receivedData) => {
+            const updatedList = usersSelector.users.map((user) => {
+                if (user._id === sendPayload.userId) {
+                    return receivedData
                 } else {
                     return user;
                 }
             });
             dispatch(setUsersAction({ users: updatedList }))
-        } catch (err) {
-            console.log(err);
+            toast("با موفقیت اصلاح شد.");
         }
-        setShowUpdateUserModal(false);
-    };
+        request("PUT", '/user', sendPayload, onSuccess)
+        setShowUpdateUserModal();
+    }
+
 
     return (
         <>
@@ -75,52 +71,31 @@ export default function Update({ user }) {
             >
                 <EditIcon />
             </IconButton>
-
             <Modal showModal={showUpdateUserModal}>
                 <FormProvider {...methods}>
                     <form onSubmit={methods.handleSubmit(handleUpdateUser)} noValidate>
-                        <Box className="p-4">
-                            <Typography
-                                className="cursor-pointer"
-                                onClick={() => setShowUpdateUserModal(false)}
-                            >
-                                <CloseIcon />
-                            </Typography>
-                        </Box>
-                        <Box className="p-4">
-                            <Box className="flex justify-center flex-wrap gap-4">
-                                <Box className="mb-4">
-                                    <TextInputForm
-                                        name="username"
-                                        label="نام کاربری"
-                                    />
-                                </Box>
-                                <Box className="mb-4">
-                                    <TextInputForm
-                                        name="firstName"
-                                        label="نام"
-                                    />
-                                </Box>
-                                <Box className="mb-4">
-                                    <TextInputForm
-                                        name="lastName"
-                                        label="نام خانوادگی"
-                                    />
-                                </Box>
-                                <Box className="mb-4">
-                                    {/* <MaterialDatePicker
-                                        label="تاریخ تولد"
-                                        register={{ ...register("birthday") }}
-                                        error={!!errors.birthday}
-                                        helperText={errors.birthday?.message}
-                                        setValue={(date) => setValue("birthday", date)}
-                                        currentDate={currentDate}
-                                        setCurrentDate={setCurrentDate}
-                                    /> */}
-                                </Box>
+                        <FormHeader setShow={setShowUpdateUserModal} />
+                        <FormBodyContainer>
+                            {
+                                formTextFieldsData.map(i => (
+                                    <Box key={i.name} className="mb-4">
+                                        <TextInputForm
+                                            name={i.name}
+                                            label={i.label}
+                                        />
+                                    </Box>
+                                ))
+                            }
+                            <Box className="mb-4">
+                                <DatePickerInputForm
+                                    label="تاریخ تولد"
+                                    name="birthday"
+                                    currentDate={currentDate}
+                                    setCurrentDate={setCurrentDate}
+                                />
                             </Box>
-                        </Box>
-                        <Box className="p-4 mt-auto flex justify-center">
+                        </FormBodyContainer>
+                        <FormFooterContainer>
                             <IconButton
                                 variant="contained"
                                 color="success"
@@ -128,7 +103,7 @@ export default function Update({ user }) {
                             >
                                 <EditIcon />
                             </IconButton>
-                        </Box>
+                        </FormFooterContainer>
                     </form>
                 </FormProvider>
             </Modal>
